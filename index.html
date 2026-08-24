@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaseBuilder | Игровой сервер CS 1.6</title>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700;900&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-dark: #1a1a2e; 
+            --bg-card: #16213e; 
+            --bg-hover: #1a1a2e;
+            --accent-primary: #667eea;
+            --accent-secondary: #764ba2;
+            --accent-green: #667eea;
+            --accent-dark: #764ba2;
+            --accent-red: #ef4444;
+            --text-primary: #e5e7eb; 
+            --text-secondary: #94a3b8;
+            --border-color: #2d3748;
+            --glow-primary: rgba(102, 126, 234, 0.3);
+            --gradient-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        body {
+            font-family: 'Rubik', sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+            color: var(--text-primary); 
+            min-height: 100vh;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .navbar { 
+            width: 100%; 
+            max-width: 1400px; 
+            padding: 20px 30px; 
+            display: flex;
+            justify-content: space-between; 
+            align-items: center; 
+            position: relative; 
+            z-index: 100;
+        }
+        .logo { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            font-family: 'Exo 2', sans-serif;
+            font-weight: 900; 
+            font-size: 1.5rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .logo-icon { 
+            width: 40px; 
+            height: 40px; 
+            background: var(--gradient-main);
+            clip-path: polygon(0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 100% 15%, 100% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 0% 85%);
+            animation: pulse-logo 2s ease-in-out infinite;
+        }
+        @keyframes pulse-logo { 
+            0%, 100% { filter: brightness(1); } 
+            50% { filter: brightness(1.3); } 
+        }
+        .nav-links { display: flex; gap: 25px; list-style: none; }
+        .nav-links a { 
+            color: var(--text-secondary); 
+            text-decoration: none; 
+            font-weight: 500;
+            font-size: 0.95rem; 
+            transition: all 0.3s ease; 
+        }
+        .nav-links a:hover { 
+            color: var(--accent-primary);
+            text-shadow: 0 0 10px var(--glow-primary);
+        }
+        .user-profile { position: relative; display: inline-block; }
+        .user-profile-btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            background: var(--bg-card);
+            padding: 10px 20px; 
+            border-radius: 30px; 
+            border: 1px solid var(--border-color);
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            color: var(--text-primary);
+        }
+        .user-profile-btn:hover { 
+            border-color: var(--accent-primary); 
+            background: var(--bg-hover);
+            box-shadow: 0 0 20px var(--glow-primary);
+        }
+        .user-avatar { 
+            width: 30px; 
+            height: 30px; 
+            background: var(--gradient-main);
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-weight: 700; 
+            font-size: 0.9rem; 
+            color: white; 
+            overflow: hidden; 
+        }
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .user-name { font-weight: 500; font-size: 0.95rem; }
+        .dropdown-menu { 
+            position: absolute; 
+            top: 100%; 
+            right: 0; 
+            margin-top: 10px; 
+            background: var(--bg-card);
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            min-width: 200px; 
+            padding: 10px;
+            display: none; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); 
+            z-index: 1000;
+        }
+        .dropdown-menu.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .dropdown-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            padding: 12px; 
+            cursor: pointer;
+            transition: all 0.3s ease; 
+            border-radius: 8px; 
+            color: var(--text-primary);
+        }
+        .dropdown-item:hover { 
+            background: rgba(102, 126, 234, 0.1); 
+            color: var(--accent-primary);
+        }
+        .dropdown-divider { height: 1px; background: var(--border-color); margin: 5px 0; }
+        .main-container { 
+            width: 100%; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            position: relative; 
+            z-index: 10;
+        }
+        .page { display: none; animation: slide-up 0.5s ease-out; }
+        .page.active { display: block; }
+        @keyframes slide-up { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .auth-container { 
+            max-width: 500px; 
+            margin: 50px auto; 
+            background: var(--bg-card);
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--glow-primary);
+        }
+        .auth-title { 
+            font-family: 'Exo 2', sans-serif; 
+            font-size: 2rem; 
+            font-weight: 900;
+            text-align: center; 
+            margin-bottom: 10px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .auth-subtitle { 
+            text-align: center; 
+            color: var(--text-secondary); 
+            margin-bottom: 30px; 
+        }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 30px; }
+        .auth-tab { 
+            flex: 1; 
+            padding: 12px; 
+            text-align: center; 
+            background: transparent;
+            border: 1px solid var(--border-color); 
+            border-radius: 30px; 
+            color: var(--text-secondary);
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            font-family: 'Rubik', sans-serif; 
+            font-size: 0.9rem;
+        }
+        .auth-tab.active { 
+            background: var(--gradient-main); 
+            color: white;
+            border-color: transparent; 
+            font-weight: 700;
+            box-shadow: 0 5px 20px var(--glow-primary);
+        }
+        .auth-tab:hover:not(.active) { 
+            border-color: var(--accent-primary); 
+            color: var(--accent-primary);
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { 
+            display: block; 
+            font-size: 0.85rem; 
+            color: var(--text-secondary);
+            margin-bottom: 8px; 
+            font-weight: 500; 
+        }
+        .form-group input, .form-group textarea { 
+            width: 100%; 
+            padding: 14px 18px;
+            background: rgba(30, 41, 59, 0.5); 
+            border: 1px solid var(--border-color);
+            border-radius: 30px; 
+            color: var(--text-primary); 
+            font-size: 1rem;
+            font-family: 'Rubik', sans-serif; 
+            transition: all 0.3s ease; 
+            outline: none;
+        }
+        .form-group input:focus, .form-group textarea:focus { 
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--glow-primary); 
+            background: rgba(30, 41, 59, 0.8);
+        }
+        .auth-btn { 
+            width: 100%; 
+            padding: 16px; 
+            background: var(--gradient-main);
+            border: none; 
+            border-radius: 30px; 
+            color: white; 
+            font-weight: 700; 
+            font-size: 1rem;
+            letter-spacing: 1px; 
+            text-transform: uppercase; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            font-family: 'Exo 2', sans-serif;
+        }
+        .auth-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px var(--glow-primary);
+        }
+        .servers-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px; 
+            margin-top: 40px; 
+            justify-content: center;
+        }
+        .server-card { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color);
+            border-radius: 20px; 
+            overflow: hidden; 
+            transition: all 0.3s ease; 
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        .server-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px var(--glow-primary);
+            border-color: var(--accent-primary);
+        }
+        .server-card-header { 
+            padding: 30px; 
+            text-align: center; 
+            position: relative;
+            background: var(--gradient-main);
+        }
+        .server-card-icon { font-size: 4rem; margin-bottom: 20px; }
+        .server-card-title { 
+            font-family: 'Exo 2', sans-serif; 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            margin-bottom: 10px;
+            color: white;
+        }
+        .server-card-body { 
+            padding: 20px 30px; 
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .server-info-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .server-info-label { color: var(--text-secondary); font-size: 0.9rem; }
+        .server-info-value { font-weight: 600; color: var(--text-primary); font-size: 0.9rem; }
+        .server-ip { 
+            color: var(--accent-primary); 
+            font-family: 'Exo 2', monospace; 
+            letter-spacing: 0.5px;
+        }
+        .monitoring-block {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .monitoring-title {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--accent-primary);
+            letter-spacing: 1px;
+        }
+        .monitoring-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(45, 55, 72, 0.5);
+        }
+        .monitoring-row:last-child {
+            border-bottom: none;
+        }
+        .monitoring-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .monitoring-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+        .players-online {
+            color: var(--accent-primary);
+            font-family: 'Exo 2', monospace;
+            font-size: 1.3rem;
+        }
+        .map-name {
+            color: var(--accent-secondary);
+            font-family: 'Exo 2', monospace;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .status-online {
+            background: #4ade80;
+            box-shadow: 0 0 10px #4ade80;
+        }
+        .status-offline {
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .server-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--gradient-main); 
+            border: none;
+            border-radius: 30px; 
+            color: white; 
+            font-weight: 700; 
+            cursor: pointer;
+            transition: all 0.3s ease; 
+            margin-top: 20px; 
+            font-family: 'Exo 2', sans-serif;
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+        }
+        .server-btn:hover { 
+            box-shadow: 0 5px 20px var(--glow-primary);
+            transform: translateY(-2px);
+        }
+        .profile-container { 
+            max-width: 900px; 
+            margin: 50px auto; 
+            background: var(--bg-card);
+            border: 1px solid var(--border-color); 
+            border-radius: 20px; 
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--glow-primary);
+        }
+        .profile-header { 
+            display: flex; 
+            align-items: center; 
+            gap: 30px; 
+            margin-bottom: 40px;
+            padding-bottom: 30px; 
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-avatar { 
+            width: 120px; 
+            height: 120px; 
+            background: var(--gradient-main);
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 3rem; 
+            font-weight: 900; 
+            color: white; 
+            overflow: hidden;
+            position: relative; 
+            cursor: pointer;
+            box-shadow: 0 0 30px var(--glow-primary);
+        }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-avatar-overlay { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0;
+            background: rgba(0, 0, 0, 0.7); 
+            padding: 8px; 
+            text-align: center;
+            font-size: 0.8rem; 
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+        }
+        .profile-avatar:hover .profile-avatar-overlay { opacity: 1; }
+        .profile-info { flex: 1; }
+        .profile-info h2 { 
+            font-size: 2rem; 
+            font-family: 'Exo 2', sans-serif; 
+            margin-bottom: 10px;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .profile-info p { color: var(--text-secondary); }
+        .profile-actions { display: flex; gap: 10px; }
+        .edit-btn { 
+            padding: 12px 20px; 
+            background: var(--gradient-main); 
+            border: none;
+            border-radius: 30px; 
+            color: white; 
+            font-weight: 600; 
+            cursor: pointer;
+            transition: all 0.3s ease; 
+            font-family: 'Rubik', sans-serif;
+        }
+        .edit-btn:hover { 
+            box-shadow: 0 5px 20px var(--glow-primary);
+            transform: translateY(-2px);
+        }
+        .edit-modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8); 
+            display: none; 
+            align-items: center; 
+            justify-content: center;
+            z-index: 1000; 
+            backdrop-filter: blur(5px);
+        }
+        .edit-modal.active { display: flex; animation: fadeIn 0.3s ease; }
+        .edit-content { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color);
+            border-radius: 20px; 
+            padding: 30px; 
+            max-width: 500px; 
+            width: 90%; 
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--glow-primary);
+        }
+        .edit-title { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            margin-bottom: 20px; 
+            text-align: center;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .edit-form { display: flex; flex-direction: column; gap: 20px; }
+        .edit-form .form-group { margin-bottom: 0; }
+        .edit-buttons { display: flex; gap: 10px; }
+        .save-btn, .cancel-btn { 
+            flex: 1; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 30px;
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            font-family: 'Rubik', sans-serif;
+        }
+        .save-btn { 
+            background: var(--gradient-main); 
+            color: white;
+        }
+        .cancel-btn { 
+            background: transparent; 
+            border: 1px solid var(--border-color); 
+            color: var(--text-primary);
+        }
+        .save-btn:hover { box-shadow: 0 5px 20px var(--glow-primary); }
+        .cancel-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
+        .name-history { margin-top: 30px; }
+        .name-history h3 { 
+            font-size: 1.2rem; 
+            margin-bottom: 15px; 
+            color: var(--accent-primary);
+        }
+        .history-item { 
+            padding: 15px; 
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 10px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            justify-content: space-between;
+        }
+        .history-old { color: var(--text-secondary); }
+        .history-new { 
+            color: var(--accent-primary); 
+            font-weight: 600;
+        }
+        .history-date { font-size: 0.85rem; color: var(--text-secondary); }
+        .privacy-settings { margin-top: 30px; }
+        .privacy-settings h3 { 
+            font-size: 1.2rem; 
+            margin-bottom: 15px; 
+            color: var(--accent-primary);
+        }
+        .privacy-item { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 15px; 
+            background: rgba(30, 41, 59, 0.3); 
+            border-radius: 10px; 
+            margin-bottom: 10px;
+        }
+        .toggle-switch { position: relative; width: 50px; height: 25px; cursor: pointer; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            background-color: var(--border-color); 
+            transition: 0.3s; 
+            border-radius: 25px;
+        }
+        .toggle-slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 19px; 
+            width: 19px;
+            left: 3px; 
+            bottom: 3px; 
+            background-color: white; 
+            transition: 0.3s; 
+            border-radius: 50%;
+        }
+        .toggle-switch input:checked + .toggle-slider { 
+            background: var(--gradient-main);
+        }
+        .toggle-switch input:checked + .toggle-slider:before { transform: translateX(25px); }
+        .logout-modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8); 
+            display: none; 
+            align-items: center; 
+            justify-content: center;
+            z-index: 1000; 
+            backdrop-filter: blur(5px);
+        }
+        .logout-modal.active { display: flex; animation: fadeIn 0.3s ease; }
+        .logout-content { 
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color);
+            border-radius: 20px; 
+            padding: 40px; 
+            text-align: center; 
+            max-width: 400px; 
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--glow-primary);
+        }
+        .logout-icon { font-size: 4rem; margin-bottom: 20px; }
+        .logout-title { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            margin-bottom: 10px;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .logout-text { color: var(--text-secondary); margin-bottom: 30px; }
+        .logout-buttons { display: flex; gap: 15px; justify-content: center; }
+        .logout-btn { 
+            padding: 12px 30px; 
+            border-radius: 30px; 
+            font-weight: 600;
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            border: none; 
+            font-size: 1rem;
+            font-family: 'Rubik', sans-serif;
+        }
+        .logout-btn-yes { 
+            background: var(--accent-red); 
+            color: white;
+        }
+        .logout-btn-no { 
+            background: var(--gradient-main); 
+            color: white;
+        }
+        .logout-btn-yes:hover { box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4); }
+        .logout-btn-no:hover { box-shadow: 0 5px 20px var(--glow-primary); }
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; gap: 15px; padding: 15px; }
+            .nav-links { gap: 15px; flex-wrap: wrap; justify-content: center; }
+            .servers-grid { grid-template-columns: 1fr; }
+            .profile-header { flex-direction: column; text-align: center; gap: 20px; }
+        }
+    
+/* ===== Epic-inspired community expansion ===== */
+:root{
+    --epic-bg:#0b0c10;
+    --epic-panel:#15171d;
+    --epic-panel-2:#1b1e26;
+    --epic-line:rgba(255,255,255,.08);
+    --epic-white:#f5f7fb;
+    --epic-muted:#9da3b0;
+    --epic-accent:#26a7ff;
+    --epic-accent-2:#7b61ff;
+}
+body{background:
+    radial-gradient(circle at 10% 0%,rgba(38,167,255,.12),transparent 30%),
+    radial-gradient(circle at 90% 10%,rgba(123,97,255,.12),transparent 28%),
+    linear-gradient(145deg,#08090c 0%,#101218 52%,#090a0d 100%);
+}
+body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+    background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 85%);
+}
+.navbar{max-width:1500px;padding:16px 28px;border-bottom:1px solid var(--epic-line)}
+.logo{font-size:1.25rem;letter-spacing:1.5px}
+.nav-links{gap:8px}
+.nav-links a{display:block;padding:10px 13px;border-radius:8px;color:#b8bec9}
+.nav-links a:hover{background:rgba(255,255,255,.06);color:#fff;text-shadow:none}
+.main-container{max-width:1500px;padding:26px}
+.page.active{animation:epicIn .32s ease-out}
+@keyframes epicIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.epic-hero{
+    min-height:310px;border:1px solid var(--epic-line);border-radius:22px;overflow:hidden;
+    position:relative;padding:48px;display:flex;align-items:flex-end;
+    background:
+      linear-gradient(90deg,rgba(7,8,11,.96) 0%,rgba(7,8,11,.75) 48%,rgba(7,8,11,.18) 100%),
+      radial-gradient(circle at 78% 30%,rgba(38,167,255,.34),transparent 24%),
+      linear-gradient(135deg,#171b25,#101219 55%,#1a1628);
+    box-shadow:0 30px 90px rgba(0,0,0,.42);
+}
+.epic-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.04) 36%,transparent 37%);opacity:.5}
+.hero-copy{position:relative;max-width:720px;z-index:1}
+.eyebrow{font-size:.76rem;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#77caff;margin-bottom:13px}
+.hero-title{font-family:'Exo 2',sans-serif;font-size:clamp(2.2rem,5vw,4.2rem);line-height:.98;font-weight:900;margin-bottom:16px;color:#fff}
+.hero-text{color:#b5bbc5;font-size:1.02rem;line-height:1.7;max-width:650px}
+.epic-actions{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.epic-btn{border:0;border-radius:7px;padding:13px 19px;font-weight:800;cursor:pointer;color:#fff;background:#fff;color:#0b0c10;transition:.2s}
+.epic-btn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.epic-btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid var(--epic-line)}
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:38px 0 16px}
+.section-head h2{font-family:'Exo 2',sans-serif;font-size:1.65rem}
+.section-head p{color:var(--epic-muted);font-size:.9rem}
+.epic-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.epic-card{
+    background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.018));
+    border:1px solid var(--epic-line);border-radius:14px;padding:22px;transition:.2s;
+}
+.epic-card:hover{transform:translateY(-3px);border-color:rgba(38,167,255,.35);box-shadow:0 18px 45px rgba(0,0,0,.28)}
+.epic-icon{width:42px;height:42px;border-radius:10px;background:rgba(38,167,255,.12);display:grid;place-items:center;font-size:20px;margin-bottom:16px}
+.epic-card h3{margin-bottom:8px;font-size:1.08rem}
+.epic-card p{color:var(--epic-muted);line-height:1.6;font-size:.9rem}
+.badge{
+    display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;
+    background:rgba(255,255,255,.07);border:1px solid var(--epic-line);font-size:.72rem;font-weight:800
+}
+.badge.creator{background:rgba(255,184,77,.12);color:#ffc66d;border-color:rgba(255,184,77,.25)}
+.badge.vip{background:rgba(38,167,255,.12);color:#77caff;border-color:rgba(38,167,255,.25)}
+.badge.admin{background:rgba(123,97,255,.14);color:#b7a8ff;border-color:rgba(123,97,255,.28)}
+.page-shell{background:rgba(15,17,22,.72);border:1px solid var(--epic-line);border-radius:18px;padding:28px}
+.page-title{font-family:'Exo 2',sans-serif;font-size:2rem;margin-bottom:7px}
+.page-subtitle{color:var(--epic-muted);margin-bottom:26px}
+.users-grid,.admins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.user-card{display:flex;align-items:center;gap:14px;padding:17px;border:1px solid var(--epic-line);background:rgba(255,255,255,.025);border-radius:13px}
+.user-avatar-lg{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#26a7ff,#7b61ff);display:grid;place-items:center;font-weight:900;color:#fff;overflow:hidden;flex:0 0 48px}
+.user-avatar-lg img{width:100%;height:100%;object-fit:cover}
+.user-meta{min-width:0}.user-meta strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-meta small{display:block;color:var(--epic-muted);margin-top:4px}
+.admin-card{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(123,97,255,.15),rgba(255,255,255,.025));border:1px solid rgba(123,97,255,.23)}
+.admin-card:after{content:"";position:absolute;right:-35px;top:-35px;width:120px;height:120px;border-radius:50%;background:rgba(123,97,255,.14);filter:blur(4px)}
+.forum-list{display:grid;gap:10px}
+.forum-row{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:18px 20px;border:1px solid var(--epic-line);background:rgba(255,255,255,.025);border-radius:12px}
+.forum-row:hover{background:rgba(255,255,255,.045)}
+.forum-title{font-weight:800;margin-bottom:6px}.forum-info{color:var(--epic-muted);font-size:.82rem}
+.forum-stat{text-align:right;color:#b9bec8;font-size:.8rem}
+.forum-compose{margin-top:18px;padding:20px;border:1px dashed rgba(38,167,255,.32);border-radius:13px;background:rgba(38,167,255,.035)}
+.epic-input,.epic-textarea,.epic-select{
+    width:100%;background:#0e1015;color:#f4f6fa;border:1px solid var(--epic-line);border-radius:8px;
+    padding:12px 13px;outline:none;font:inherit
+}
+.epic-input:focus,.epic-textarea:focus,.epic-select:focus{border-color:rgba(38,167,255,.7);box-shadow:0 0 0 3px rgba(38,167,255,.1)}
+.epic-textarea{min-height:120px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.shop-card{border:1px solid var(--epic-line);border-radius:15px;overflow:hidden;background:#111319}
+.shop-cover{height:125px;display:flex;align-items:flex-end;padding:18px;background:
+    linear-gradient(135deg,rgba(0,0,0,.05),rgba(0,0,0,.68)),
+    radial-gradient(circle at 80% 20%,rgba(38,167,255,.5),transparent 28%),#171b25}
+.shop-cover.admin{background:linear-gradient(135deg,rgba(0,0,0,.05),rgba(0,0,0,.72)),radial-gradient(circle at 80% 20%,rgba(123,97,255,.58),transparent 30%),#1b1727}
+.shop-cover.skin{background:linear-gradient(135deg,rgba(0,0,0,.05),rgba(0,0,0,.72)),radial-gradient(circle at 80% 20%,rgba(255,177,73,.48),transparent 30%),#201a15}
+.shop-body{padding:19px}.price{font-size:1.55rem;font-weight:900;margin:13px 0 3px}.price-note{font-size:.78rem;color:var(--epic-muted)}
+.shop-list{list-style:none;margin:15px 0 18px;display:grid;gap:8px}.shop-list li{color:#c5cad3;font-size:.86rem}.shop-list li:before{content:"✓";color:#77caff;font-weight:900;margin-right:8px}
+.creator-note{margin-top:20px;padding:14px 16px;border-radius:10px;background:rgba(255,184,77,.07);border:1px solid rgba(255,184,77,.18);color:#d6d9df;font-size:.86rem;line-height:1.6}
+.role-line{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px}
+#siteUsersSummary{color:var(--epic-muted);font-size:.85rem}
+@media(max-width:1000px){.epic-grid,.shop-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.epic-grid,.shop-grid{grid-template-columns:1fr}.epic-hero{padding:28px;min-height:360px}.page-shell{padding:20px}.form-row{grid-template-columns:1fr}.forum-row{grid-template-columns:1fr}.forum-stat{text-align:left}}
+
+    </style>
+
+<style>
+#forumTopicView .epic-card{margin-top:14px;}
+#forumList .forum-row{transition:transform .12s ease,background .12s ease;}
+.forum-author-card{display:flex;gap:14px;align-items:flex-start;min-width:230px;}
+.forum-author-avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;flex:0 0 58px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;}
+.forum-author-meta{min-width:0;}
+.forum-author-name{font-weight:800;font-size:16px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.forum-author-date{font-size:12px;opacity:.62;margin-top:4px;}
+.forum-post{display:grid;grid-template-columns:250px minmax(0,1fr);gap:22px;padding:18px 0;border-top:1px solid rgba(255,255,255,.08);}
+.forum-post:first-child{border-top:0;}
+.forum-post-body{min-width:0;}
+.forum-post-text{white-space:pre-wrap;line-height:1.65;overflow-wrap:anywhere;}
+.forum-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.forum-actions .epic-btn{margin:0;}
+@media(max-width:720px){.forum-post{grid-template-columns:1fr;gap:12px}.forum-author-card{min-width:0}.forum-row{grid-template-columns:1fr!important}.forum-stat{text-align:left!important}}
+#forumList .forum-row:hover{transform:translateY(-1px);filter:brightness(1.08);}
+</style>
+<style>
+.bb-balance-card{min-width:150px;padding:12px 16px;border:1px solid rgba(124,92,255,.35);border-radius:14px;background:rgba(20,20,35,.65);display:flex;flex-direction:column;gap:3px}.bb-balance-card span{font-size:12px;color:var(--text-secondary)}.bb-balance-card strong{font-size:20px}.bb-admin-panel{margin:18px 0;padding:18px;border:1px solid rgba(124,92,255,.35);border-radius:16px;background:rgba(15,16,27,.65)}.bb-admin-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.bb-admin-row input{flex:1;min-width:180px}.bb-user-balance{margin-top:5px;color:#aeb4c7;font-size:13px}.bb-shop-balance{margin:14px 0;padding:14px 16px;border-radius:14px;background:rgba(124,92,255,.09);border:1px solid rgba(124,92,255,.25)}
+</style>
+<style id="bb-extra-shop-style">
+.shop-cover.hook{background:linear-gradient(135deg,rgba(0,0,0,.05),rgba(0,0,0,.72)),radial-gradient(circle at 80% 20%,rgba(48,205,255,.58),transparent 30%),#12222b}
+.shop-cover.copy{background:linear-gradient(135deg,rgba(0,0,0,.05),rgba(0,0,0,.72)),radial-gradient(circle at 80% 20%,rgba(255,91,160,.55),transparent 30%),#29131f}
+.shop-cover.exp{background:linear-gradient(135deg,rgba(0,0,0,.05),rgba(0,0,0,.72)),radial-gradient(circle at 80% 20%,rgba(100,235,142,.52),transparent 30%),#15251a}
+.bb-extra-shop-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+@media(max-width:900px){.bb-extra-shop-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.bb-extra-shop-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo" onclick="showPage('epicHome')">
+            <div class="logo-icon"></div>
+            <span>BaseBuilder</span>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a href="#" onclick="showPage('home')">Главная</a></li>
+            <li><a href="#">Форум</a></li>
+            <li><a href="#">Магазин</a></li>
+            <li><a href="#">Правила</a></li>
+        </ul>
+        
+        <div class="user-profile" id="userProfile" style="display: none;">
+            <button class="user-profile-btn" onclick="toggleDropdown()">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <span class="user-name" id="userName">Игрок</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-item" onclick="showProfile()">
+                    <span>👤</span>
+                    <span>Мой профиль</span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div class="dropdown-item" onclick="showLogoutModal()">
+                    <span>🚪</span>
+                    <span>Выход из аккаунта</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <div class="page active" id="authPage">
+            <div class="auth-container">
+                <h1 class="auth-title">Вход в аккаунт</h1>
+                <p class="auth-subtitle">Добро пожаловать в BaseBuilder</p>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="loginTab">Вход</button>
+                    <button class="auth-tab" id="registerTab">Регистрация</button>
+                </div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-username">Никнейм</label>
+                        <input type="text" id="login-username" placeholder="Введите ваш ник" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Пароль</label>
+                        <input type="password" id="login-password" placeholder="Введите пароль" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Войти</button>
+                </form>
+                
+                <form id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="reg-username">Никнейм</label>
+                        <input type="text" id="reg-username" placeholder="Придумайте ник" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" placeholder="Введите email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Пароль</label>
+                        <input type="password" id="reg-password" placeholder="Минимум 6 символов" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password-confirm">Подтверждение пароля</label>
+                        <input type="password" id="reg-password-confirm" placeholder="Повторите пароль" required>
+                    </div>
+                    <button type="submit" class="auth-btn">Зарегистрироваться</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="page" id="homePage">
+            <h1 style="text-align: center; font-family: 'Exo 2', sans-serif; font-size: 2.5rem; margin-bottom: 20px; background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Игровые сервера
+            </h1>
+            <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+                Выберите сервер для игры
+            </p>
+            
+            <div class="servers-grid">
+                <div class="server-card">
+                    <div class="server-card-header">
+                        <div class="server-card-icon">🏗️</div>
+                        <div class="server-card-title">BaseBuilder 14+</div>
+                    </div>
+                    <div class="server-card-body">
+                        <div class="server-info-row">
+                            <span class="server-info-label">Режим</span>
+                            <span class="server-info-value">Строительство баз</span>
+                        </div>
+                        <div class="server-info-row">
+                            <span class="server-info-label">Возраст</span>
+                            <span class="server-info-value">14+</span>
+                        </div>
+                        <div class="server-info-row">
+                            <span class="server-info-label">IP адрес</span>
+                            <span class="server-info-value server-ip">46.174.49.52:27013</span>
+                        </div>
+                        
+                        <div class="monitoring-block">
+                            <div class="monitoring-title">
+                                <span class="status-indicator status-online" id="statusDot"></span>
+                                Мониторинг сервера
+                            </div>
+                            <div class="monitoring-row">
+                                <span class="monitoring-label">Статус:</span>
+                                <span class="monitoring-value" id="serverStatus">Онлайн</span>
+                            </div>
+                            <div class="monitoring-row">
+                                <span class="monitoring-label">Игроки:</span>
+                                <span class="monitoring-value players-online" id="playersCount">Загрузка...</span>
+                            </div>
+                            <div class="monitoring-row">
+                                <span class="monitoring-label">Карта:</span>
+                                <span class="monitoring-value map-name" id="currentMap">Загрузка...</span>
+                            </div>
+                        </div>
+                        
+                        <button class="server-btn" onclick="connectToServer('46.174.49.52:27013')">Подключиться</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="profilePage">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar" onclick="openEditModal()">
+                        A
+                        <div class="profile-avatar-overlay">Изменить</div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profileName">Игрок</h2>
+                        <p id="profileEmail">email@example.com</p>
+                        <p style="margin-top: 10px; font-size: 0.85rem; color: var(--text-secondary);">
+                            Дата регистрации: <span id="profileDate">-</span>
+                        </p>
+                    </div>
+                    <div class="profile-actions">
+                        <div class="bb-balance-card"><span>Баланс</span><strong id="profileBalance">0 ₽</strong></div>
+                        <button class="edit-btn" onclick="openEditModal()">Редактировать</button>
+                    </div>
+                </div>
+                
+                <div id="creatorBalancePanel" class="bb-admin-panel" style="display:none;">
+                    <div><h3>Управление балансом</h3><p>Выдать баланс пользователю. Сумма реально используется при покупке VIP/ADMIN.</p></div>
+                    <div class="bb-admin-row"><input id="grantUser" placeholder="Ник пользователя"><input id="grantAmount" type="number" min="1" placeholder="Сумма, ₽"><button class="epic-btn" onclick="grantBalanceFromSite()">Выдать баланс</button></div>
+                </div>
+
+                <div class="name-history">
+                    <h3>История изменений имени</h3>
+                    <div id="nameHistoryList">
+                        <p style="color: var(--text-secondary);">История пуста</p>
+                    </div>
+                </div>
+                
+                <div class="privacy-settings">
+                    <h3>Настройки приватности</h3>
+                    <div class="privacy-item">
+                        <span>Показывать email другим пользователям</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="emailVisibility" onchange="toggleEmailVisibility()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+<!-- ===== Community pages added without changing the existing auth/monitoring blocks ===== -->
+<div class="page" id="forumPage">
+  <div class="page-shell">
+    <div class="page-title">Форум сообщества</div>
+    <div class="page-subtitle">Обсуждения сервера, новости и помощь игрокам.</div>
+    <div id="forumList" class="forum-list"></div>
+    <div id="forumCompose" class="forum-compose" style="display:none;">
+      <div class="role-line"><span class="badge creator">★ Создатель</span><strong>Создать тему</strong></div>
+      <div class="form-row" style="margin-top:14px;">
+        <input class="epic-input" id="forumTopicTitle" maxlength="100" placeholder="Название темы">
+        <select class="epic-select" id="forumTopicCategory">
+          <option>Общее</option><option>Новости</option><option>Помощь</option><option>События</option>
+        </select>
+      </div>
+      <textarea class="epic-textarea" id="forumTopicText" maxlength="2000" placeholder="Первое сообщение темы..."></textarea>
+      <button class="epic-btn" style="margin-top:12px;" onclick="createForumTopic()">Опубликовать тему</button>
+    </div>
+    <div id="forumPermissionHint" class="creator-note">Создавать темы могут только администраторы сайта со статусом «Создатель».</div>
+  </div>
+</div>
+
+<div class="page" id="usersPage">
+  <div class="page-shell">
+    <div class="section-head" style="margin-top:0;">
+      <div><div class="page-title">Пользователи</div><div class="page-subtitle">Все аккаунты, зарегистрированные на сайте.</div></div>
+      <div id="siteUsersSummary"></div>
+    </div>
+    <div id="usersGrid" class="users-grid"></div>
+  </div>
+</div>
+
+<div class="page" id="adminsPage">
+  <div class="page-shell">
+    <div class="page-title">Администраторы сайта</div>
+    <div class="page-subtitle">Команда создателей проекта.</div>
+    <div id="adminsGrid" class="admins-grid"></div>
+    <div class="creator-note">Статус «Создатель» является ролью сайта. Он отображается в профиле и даёт право создавать темы на форуме.</div>
+  </div>
+</div>
+
+<div class="page" id="shopPage">
+  <div class="page-shell">
+    <div class="page-title">Магазин привилегий</div>
+    <div class="page-subtitle">Привилегии дают больше возможностей, но создают и больше ответственности.</div>
+    <div class="shop-grid">
+      <article class="shop-card">
+        <div class="shop-cover"><span class="badge vip">VIP</span></div>
+        <div class="shop-body">
+          <h3>Вип</h3><div class="price">150 ₽ <span style="font-size:.9rem;color:#9da3b0;">/ 75 ₴</span></div><div class="price-note">ровно на 1 месяц</div>
+          <ul class="shop-list">
+            <li>Доступ к Вип Меню</li><li>Своя модель випа за КТ</li><li>Свой зомби класс</li><li>Префикс Вип в чате</li>
+          </ul>
+          <button class="epic-btn" style="width:100%;" onclick="openPrivilegePurchase('vip')">Купить</button>
+        </div>
+      </article>
+      <article class="shop-card">
+        <div class="shop-cover admin"><span class="badge admin">ADMIN</span></div>
+        <div class="shop-body">
+          <h3>Админ</h3><div class="price">200 ₽ <span style="font-size:.9rem;color:#9da3b0;">/ 100 ₴</span></div><div class="price-note">ровно на 1 месяц</div>
+          <ul class="shop-list">
+            <li>Все возможности Вип</li><li>Доступ к Админ меню</li><li>Доступ к грабу</li><li>Своя модель админа за КТ</li><li>Свой зомби класс</li><li>Префикс Админ + зелёные сообщения</li>
+          </ul>
+          <button class="epic-btn" style="width:100%;" onclick="openPrivilegePurchase('admin')">Купить</button>
+        </div>
+      </article>
+      <article class="shop-card">
+        <div class="shop-cover skin"><span class="badge">CUSTOM SKIN</span></div>
+        <div class="shop-body">
+          <h3>Собственный скин</h3><div class="price">150 ₽ <span style="font-size:.9rem;color:#9da3b0;">/ 75 ₴</span></div><div class="price-note">ровно на 1 месяц</div>
+          <ul class="shop-list">
+            <li>Скин виден всем игрокам</li><li>Перед покупкой нужно прислать модель</li><li>Установка выбранной модели</li>
+          </ul>
+          <button class="epic-btn" style="width:100%;" onclick="openPurchase()">Купить</button>
+        </div>
+      </article>
+    </div>
+    <div class="creator-note"><strong>Покупка из России / Украины:</strong> t.me/basebuilder_14<br>Все привилегии и скины продаются ровно на месяц.</div>
+  </div>
+</div>
+
+<div class="page" id="homeEpicPage">
+  <div class="epic-hero">
+    <div class="hero-copy">
+      <div class="eyebrow">BASEBUILDER COMMUNITY</div>
+      <div class="hero-title">Играй. Строй.<br>Будь частью проекта.</div>
+      <div class="hero-text">Современный портал сообщества BaseBuilder с профилями игроков, форумом, командой создателей и магазином привилегий.</div>
+      <div class="epic-actions">
+        <button class="epic-btn" onclick="showPage('home')">Открыть сервер</button>
+        <button class="epic-btn secondary" onclick="showPage('shop')">Смотреть магазин</button>
+      </div>
+    </div>
+  </div>
+  <div class="section-head"><div><h2>Разделы сообщества</h2><p>Всё важное — в одном месте.</p></div></div>
+  <div class="epic-grid">
+    <div class="epic-card" onclick="showPage('forum')" style="cursor:pointer"><div class="epic-icon">💬</div><h3>Форум</h3><p>Обсуждения, новости и темы от создателей проекта.</p></div>
+    <div class="epic-card" onclick="showPage('users')" style="cursor:pointer"><div class="epic-icon">👥</div><h3>Пользователи</h3><p>Список аккаунтов, зарегистрированных на сайте.</p></div>
+    <div class="epic-card" onclick="showPage('admins')" style="cursor:pointer"><div class="epic-icon">★</div><h3>Создатели</h3><p>Четыре администратора проекта с отметкой создателя.</p></div>
+  </div>
+</div>
+
+    </main>
+
+    <div class="edit-modal" id="editModal">
+        <div class="edit-content">
+            <h3 class="edit-title">Редактирование профиля</h3>
+            <form class="edit-form" id="editForm">
+                <div class="form-group">
+                    <label>Фото профиля</label>
+                    <input type="file" id="avatarUpload" accept="image/*" onchange="previewAvatar(this)">
+                    <div style="margin-top: 10px; text-align: center;">
+                        <img id="avatarPreview" src="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-name">Новое имя</label>
+                    <input type="text" id="edit-name" placeholder="Введите новое имя">
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">Новый email</label>
+                    <input type="email" id="edit-email" placeholder="Введите новый email">
+                </div>
+                <div class="edit-buttons">
+                    <button type="button" class="cancel-btn" onclick="closeEditModal()">Отмена</button>
+                    <button type="submit" class="save-btn">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="edit-modal" id="purchaseModal" style="display:none;">
+  <div class="edit-content" style="max-width:520px;">
+    <h3 class="edit-title" id="purchaseModalTitle">Покупка привилегии</h3>
+    <p style="color:var(--text-secondary);margin:0 0 16px;">
+      Укажите ник и пароль в игре для выдачи привилегии
+    </p>
+    <form id="purchaseForm" class="edit-form">
+      <div class="form-group">
+        <label for="purchaseServerNick">Ник на сервере</label>
+        <input class="epic-input" id="purchaseServerNick" maxlength="32" placeholder="Ник в CS 1.6" required>
+      </div>
+      <div class="form-group">
+        <label for="purchaseGamePassword">Пароль привилегии</label>
+        <input class="epic-input" id="purchaseGamePassword" type="password" maxlength="64" placeholder="Придумай пароль" required>
+        <small style="display:block;margin-top:7px;color:var(--text-secondary);">
+          После покупки в CS 1.6 введи: <code>setinfo _pw ТВОЙ_ПАРОЛЬ</code>
+        </small>
+      </div>
+      <div id="purchaseSummary" class="creator-note" style="margin-top:8px;"></div>
+      <div class="edit-buttons">
+        <button type="button" class="cancel-btn" onclick="closePurchaseModal()">Отмена</button>
+        <button type="submit" class="save-btn">Купить</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="logout-modal" id="logoutModal">
+        <div class="logout-content">
+            <div class="logout-icon">🚪</div>
+            <h3 class="logout-title">Выход из аккаунта</h3>
+            <p class="logout-text">Вы уверены, что хотите выйти из своего аккаунта?</p>
+            <div class="logout-buttons">
+                <button class="logout-btn logout-btn-yes" onclick="confirmLogout()">Да, выйти</button>
+                <button class="logout-btn logout-btn-no" onclick="cancelLogout()">Нет, остаться</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация базы данных
+        function initDatabase() {
+            if (!localStorage.getItem('baseBuilderUsers')) {
+                localStorage.setItem('baseBuilderUsers', JSON.stringify({}));
+            }
+            return JSON.parse(localStorage.getItem('baseBuilderUsers'));
+        }
+
+        let users = initDatabase();
+        let currentUser = null;
+
+        // Загрузка сессии
+        function loadSession() {
+            const savedSession = localStorage.getItem('baseBuilderSession');
+            if (savedSession) {
+                const sessionData = JSON.parse(savedSession);
+                if (sessionData && sessionData.username && users[sessionData.username]) {
+                    currentUser = users[sessionData.username];
+                    updateUserInterface();
+                    showPage('home');
+                }
+            }
+        }
+
+        // Сохранение сессии
+        function saveSession(user) {
+            localStorage.setItem('baseBuilderSession', JSON.stringify({
+                username: user.username,
+                loginTime: new Date().toISOString()
+            }));
+        }
+
+        // Очистка сессии
+        function clearSession() {
+            localStorage.removeItem('baseBuilderSession');
+        }
+
+        // Мониторинг CS 1.6 через внешний HTTP API-прокси (GameQuery)
+        async function updateServerMonitoring() {
+            const playersCount = document.getElementById('playersCount');
+            const currentMap = document.getElementById('currentMap');
+            const serverStatus = document.getElementById('serverStatus');
+            const statusDot = document.getElementById('statusDot');
+
+            try {
+                const response = await fetch('/api/server.php', { cache: 'no-store' });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+
+                const data = await response.json();
+
+                if (data.online) {
+                    serverStatus.textContent = 'Онлайн';
+                    statusDot.className = 'status-indicator status-online';
+                    playersCount.textContent = `${data.players} / ${data.maxPlayers}`;
+                    currentMap.textContent = data.map || 'Неизвестно';
+                } else {
+                    serverStatus.textContent = 'Оффлайн';
+                    statusDot.className = 'status-indicator status-offline';
+                    playersCount.textContent = '—';
+                    currentMap.textContent = '—';
+                }
+            } catch (error) {
+                console.error('Ошибка мониторинга:', error);
+                serverStatus.textContent = 'Ошибка подключения';
+                statusDot.className = 'status-indicator status-offline';
+                playersCount.textContent = '—';
+                currentMap.textContent = '—';
+            }
+        }
+
+        // Первый запрос сразу после загрузки
+        updateServerMonitoring();
+
+        // Обновляем каждые 2 минуты (в API есть общий лимит без ключа)
+        setInterval(updateServerMonitoring, 120000);
+
+        // Обновляем при возвращении на вкладку
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) updateServerMonitoring();
+        });
+
+        // Переключение вкладок
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        loginTab.addEventListener('click', function() {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+        });
+
+        registerTab.addEventListener('click', function() {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.style.display = 'block';
+            loginForm.style.display = 'none';
+        });
+
+        // Переключение страниц
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            if (pageId === 'home') {
+                document.getElementById('homePage').classList.add('active');
+                updateServerMonitoring();
+            } else if (pageId === 'auth') {
+                document.getElementById('authPage').classList.add('active');
+            } else if (pageId === 'profile') {
+                document.getElementById('profilePage').classList.add('active');
+                updateProfileInfo();
+            }
+            
+            document.getElementById('dropdownMenu').classList.remove('active');
+        }
+
+        // Переключение dropdown
+        function toggleDropdown() {
+            document.getElementById('dropdownMenu').classList.toggle('active');
+        }
+
+        // Закрытие dropdown при клике вне
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-profile')) {
+                document.getElementById('dropdownMenu').classList.remove('active');
+            }
+        });
+
+        // Регистрация
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const passwordConfirm = document.getElementById('reg-password-confirm').value;
+            
+            if (password !== passwordConfirm) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+            
+            if (users[username]) {
+                alert('Пользователь с таким ником уже зарегистрирован!');
+                return;
+            }
+            
+            users[username] = {
+                username: username,
+                email: email,
+                password: password,
+                avatar: null,
+                emailVisible: false,
+                nameHistory: [],
+                registrationDate: new Date().toLocaleDateString('ru-RU')
+            };
+            
+            localStorage.setItem('baseBuilderUsers', JSON.stringify(users));
+            registerForm.reset();
+            loginTab.click();
+            document.getElementById('login-username').value = username;
+            alert('Регистрация успешна! Теперь войдите в аккаунт.');
+        });
+
+        // Вход
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            if (!users[username]) {
+                alert('Пользователь с таким ником не найден!');
+                return;
+            }
+            
+            if (users[username].password !== password) {
+                alert('Неверный пароль!');
+                return;
+            }
+            
+            currentUser = users[username];
+            saveSession(currentUser);
+            updateUserInterface();
+            loginForm.reset();
+            showPage('home');
+        });
+
+        // Обновление интерфейса пользователя
+        function updateUserInterface() {
+            if (currentUser) {
+                document.getElementById('userProfile').style.display = 'block';
+                document.getElementById('userName').textContent = currentUser.username;
+                
+                const userAvatar = document.getElementById('userAvatar');
+                if (currentUser.avatar) {
+                    userAvatar.innerHTML = '<img src="' + currentUser.avatar + '" alt="Avatar">';
+                } else {
+                    userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                }
+            }
+        }
+
+        // Обновление информации профиля
+        function updateProfileInfo() {
+            if (currentUser) {
+                document.getElementById('profileName').textContent = currentUser.username;
+                document.getElementById('profileDate').textContent = currentUser.registrationDate;
+                
+                const emailElement = document.getElementById('profileEmail');
+                if (currentUser.emailVisible) {
+                    emailElement.textContent = currentUser.email;
+                } else {
+                    emailElement.textContent = 'Email скрыт';
+                }
+                
+                const profileAvatar = document.getElementById('profileAvatar');
+                if (currentUser.avatar) {
+                    profileAvatar.innerHTML = '<img src="' + currentUser.avatar + '" alt="Avatar"><div class="profile-avatar-overlay">Изменить</div>';
+                } else {
+                    profileAvatar.innerHTML = currentUser.username.charAt(0).toUpperCase() + '<div class="profile-avatar-overlay">Изменить</div>';
+                }
+                
+                updateNameHistory();
+                document.getElementById('emailVisibility').checked = currentUser.emailVisible;
+            }
+        }
+
+        // Обновление истории изменений имени
+        function updateNameHistory() {
+            const historyList = document.getElementById('nameHistoryList');
+            if (currentUser.nameHistory && currentUser.nameHistory.length > 0) {
+                historyList.innerHTML = currentUser.nameHistory.map(change => 
+                    '<div class="history-item">' +
+                    '<span><span class="history-old">' + change.oldName + '</span> → <span class="history-new">' + change.newName + '</span></span>' +
+                    '<span class="history-date">' + change.date + '</span>' +
+                    '</div>'
+                ).join('');
+            } else {
+                historyList.innerHTML = '<p style="color: var(--text-secondary);">История пуста</p>';
+            }
+        }
+
+        // Открытие модального окна редактирования
+        function openEditModal() {
+            document.getElementById('editModal').classList.add('active');
+            document.getElementById('edit-name').value = currentUser.username;
+            document.getElementById('edit-email').value = currentUser.email;
+            
+            const preview = document.getElementById('avatarPreview');
+            if (currentUser.avatar) {
+                preview.src = currentUser.avatar;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Закрытие модального окна редактирования
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        // Предпросмотр аватара
+        function previewAvatar(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('avatarPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Сохранение изменений профиля
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newName = document.getElementById('edit-name').value.trim();
+            const newEmail = document.getElementById('edit-email').value.trim();
+            const avatarFile = document.getElementById('avatarUpload').files[0];
+            
+            if (newName && newName !== currentUser.username) {
+                if (users[newName]) {
+                    alert('Пользователь с таким ником уже существует!');
+                    return;
+                }
+                
+                if (!currentUser.nameHistory) {
+                    currentUser.nameHistory = [];
+                }
+                currentUser.nameHistory.push({
+                    oldName: currentUser.username,
+                    newName: newName,
+                    date: new Date().toLocaleDateString('ru-RU')
+                });
+                
+                users[newName] = currentUser;
+                users[newName].username = newName;
+                delete users[currentUser.username];
+                currentUser = users[newName];
+                
+                saveSession(currentUser);
+            }
+            
+            if (newEmail && newEmail !== currentUser.email) {
+                currentUser.email = newEmail;
+                localStorage.setItem('baseBuilderUsers', JSON.stringify(users));
+            }
+            
+            if (avatarFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUser.avatar = e.target.result;
+                    localStorage.setItem('baseBuilderUsers', JSON.stringify(users));
+                    updateUserInterface();
+                    updateProfileInfo();
+                };
+                reader.readAsDataURL(avatarFile);
+            }
+            
+            updateUserInterface();
+            updateProfileInfo();
+            closeEditModal();
+            
+            alert('Профиль обновлен!');
+        });
+
+        // Переключение видимости email
+        function toggleEmailVisibility() {
+            if (currentUser) {
+                currentUser.emailVisible = document.getElementById('emailVisibility').checked;
+                localStorage.setItem('baseBuilderUsers', JSON.stringify(users));
+                updateProfileInfo();
+            }
+        }
+
+        // Показать профиль
+        function showProfile() {
+            showPage('profile');
+        }
+
+        // Показать модальное окно выхода
+        function showLogoutModal() {
+            document.getElementById('logoutModal').classList.add('active');
+            document.getElementById('dropdownMenu').classList.remove('active');
+        }
+
+        // Подтверждение выхода
+        function confirmLogout() {
+            currentUser = null;
+            clearSession();
+            document.getElementById('userProfile').style.display = 'none';
+            document.getElementById('logoutModal').classList.remove('active');
+            showPage('auth');
+        }
+
+        // Отмена выхода
+        function cancelLogout() {
+            document.getElementById('logoutModal').classList.remove('active');
+            showPage('home');
+        }
+
+        // Подключение к серверу
+        function connectToServer(ip) {
+            const url = 'steam://connect/' + ip;
+            window.location.href = url;
+            setTimeout(() => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(ip).catch(() => {});
+                }
+            }, 700);
+        }
+
+        // Загрузка сессии при старте
+        loadSession();
+
+/* ===== Community + MySQL forum integration ===== */
+(function(){const st=document.createElement('style');st.textContent='.forum-status{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;margin-left:6px;border:1px solid rgba(255,255,255,.12)}.forum-status.approved{color:#86efac}.forum-status.rejected{color:#fca5a5}.forum-status.pending{color:#fcd34d}.forum-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}';document.head.appendChild(st);})();
+const SITE_CREATORS = ['Puma123','МишкиГамми','Опасненько2','(Soski) Fn'];
+const SITE_ROLES = Object.fromEntries(SITE_CREATORS.map(n => [n, 'creator']));
+const FORUM_API = 'forum_api.php';
+let forumTopicsCache = [];
+let forumCurrentTopicId = null;
+
+function getSiteRole(username){
+  return username && SITE_ROLES[username] ? SITE_ROLES[username] : 'user';
+}
+function roleBadge(role){
+  if(role === 'creator') return '<span class="badge creator">★ Создатель</span>';
+  if(role === 'admin') return '<span class="badge admin">Админ</span>';
+  if(role === 'vip') return '<span class="badge vip">VIP</span>';
+  return '<span class="badge">Игрок</span>';
+}
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function forumUserName(){
+  return currentUser && currentUser.username ? currentUser.username : '';
+}
+async function forumRequest(action, payload={}){
+  const body = new URLSearchParams({action, ...payload});
+  const response = await fetch(FORUM_API, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body});
+  const data = await response.json().catch(()=>({ok:false,error:'Сервер вернул некорректный ответ.'}));
+  if(!response.ok || !data.ok) throw new Error(data.error || 'Ошибка форума.');
+  return data;
+}
+function ensureForumTopicView(){
+  const page=document.getElementById('forumPage');
+  if(!page) return null;
+  let view=document.getElementById('forumTopicView');
+  if(!view){
+    view=document.createElement('div');
+    view.id='forumTopicView';
+    view.style.display='none';
+    view.style.marginTop='18px';
+    page.querySelector('.page-shell').appendChild(view);
+  }
+  return view;
+}
+function showForumListMode(){
+  document.getElementById('forumList').style.display='block';
+  const compose=document.getElementById('forumCompose');
+  const hint=document.getElementById('forumPermissionHint');
+  if(compose) compose.style.display=(currentUser && getSiteRole(currentUser.username)==='creator')?'block':'none';
+  if(hint) hint.style.display=(currentUser && getSiteRole(currentUser.username)==='creator')?'none':'block';
+  const view=ensureForumTopicView(); if(view) view.style.display='none';
+  forumCurrentTopicId=null;
+}
+async function renderForum(){
+  const list=document.getElementById('forumList'); if(!list)return;
+  showForumListMode();
+  list.innerHTML='<div class="epic-card"><p>Загрузка тем...</p></div>';
+  try{
+    const data=await forumRequest('list_topics');
+    forumTopicsCache=data.topics||[];
+    if(!forumTopicsCache.length){
+      list.innerHTML='<div class="epic-card"><h3>Тем пока нет</h3><p>Создай первую тему.</p></div>';
+    } else {
+      list.innerHTML=forumTopicsCache.map((t)=>`
+        <div class="forum-row forum-topic-only" onclick="openForumTopic(${Number(t.id)})" style="cursor:pointer">
+          <div class="forum-title">${escapeHtml(t.title)}</div>
+        </div>`).join('');
+    }
+  }catch(err){
+    list.innerHTML=`<div class="epic-card"><h3>Не удалось загрузить форум</h3><p>${escapeHtml(err.message)}</p><button class="epic-btn" onclick="renderForum()">Повторить</button></div>`;
+  }
+}
+async function openForumTopic(topicId){
+  const view=ensureForumTopicView(); if(!view)return;
+  document.getElementById('forumList').style.display='none';
+  const compose=document.getElementById('forumCompose'); if(compose) compose.style.display='none';
+  const hint=document.getElementById('forumPermissionHint'); if(hint) hint.style.display='none';
+  view.style.display='block';
+  view.innerHTML='<div class="epic-card"><p>Загрузка темы...</p></div>';
+  try{
+    const data=await forumRequest('get_topic',{topic_id:String(topicId)});
+    forumCurrentTopicId=Number(topicId);
+    const t=data.topic;
+    const replies=data.replies||[];
+    const canManageTopic=currentUser && (currentUser.username===t.author || getSiteRole(currentUser.username)==='creator');
+    const topicAvatar=t.author_avatar ? `<img class="forum-author-avatar" src="${escapeHtml(t.author_avatar)}" alt="">` : `<div class="forum-author-avatar">${escapeHtml((t.author||'?').charAt(0).toUpperCase())}</div>`;
+    const topicActions=canManageTopic ? `<div class="forum-actions"><button class="epic-btn secondary" onclick="editForumTopic(${Number(t.id)})">Редактировать тему</button><button class="epic-btn secondary" onclick="deleteForumTopic(${Number(t.id)})">Удалить тему</button></div>` : '';
+    const repliesHtml=replies.length ? replies.map(r=>{
+       const avatar=r.author_avatar ? `<img class="forum-author-avatar" src="${escapeHtml(r.author_avatar)}" alt="">` : `<div class="forum-author-avatar">${escapeHtml((r.author||'?').charAt(0).toUpperCase())}</div>`;
+       const isOwner=currentUser && currentUser.username===r.author;
+       const isCreator=currentUser && getSiteRole(currentUser.username)==='creator';
+       const status=r.status||'pending';
+       const statusText=status==='approved'?'Одобрено':(status==='rejected'?'Отказано':'На рассмотрении');
+       const statusBadge=`<span class="forum-status ${status}">${statusText}</span>`;
+       const replyActions=(isOwner||isCreator)?`<div class="forum-actions"><button class="epic-btn secondary" onclick="editForumReply(${Number(r.id)},${Number(t.id)})">Редактировать</button><button class="epic-btn secondary" onclick="deleteForumReply(${Number(r.id)},${Number(t.id)})">Удалить</button>${isCreator?`<button class="epic-btn secondary" onclick="moderateForumReply(${Number(r.id)},${Number(t.id)},'approved')">Одобрено</button><button class="epic-btn secondary" onclick="moderateForumReply(${Number(r.id)},${Number(t.id)},'rejected')">Отказано</button>`:''}</div>`:'';
+       return `<div class="forum-post"><div class="forum-author-card">${avatar}<div class="forum-author-meta"><div class="forum-author-name">${escapeHtml(r.author)} ${roleBadge(getSiteRole(r.author))}</div><div class="forum-author-date">Зарегистрирован: ${escapeHtml(r.author_registered||'—')}</div></div></div><div class="forum-post-body"><div class="forum-info">${escapeHtml(r.created_at||'')} · ${statusBadge}</div><div class="forum-post-text" style="margin-top:8px">${escapeHtml(r.body)}</div>${replyActions}</div></div>`;
+     }).join('') : '<p class="forum-info">Пока никто не ответил.</p>';
+    view.innerHTML=`
+      <div class="epic-card">
+        <button class="epic-btn secondary" onclick="renderForum()">← Все темы</button>
+        <div class="forum-post" style="border-top:0;padding-top:18px">
+          <div class="forum-author-card">${topicAvatar}<div class="forum-author-meta"><div class="forum-author-name">${escapeHtml(t.author)} ${roleBadge(getSiteRole(t.author))}</div><div class="forum-author-date">Зарегистрирован: ${escapeHtml(t.author_registered||'—')}</div></div></div>
+          <div class="forum-post-body"><div class="forum-info">${escapeHtml(t.category||'Общее')} · Опубликовано: ${escapeHtml(t.created_at||'')}</div><h2 style="margin:10px 0 0">${escapeHtml(t.title)}</h2><div class="topic-message forum-post-text" style="margin-top:18px">${escapeHtml(t.body)}</div>${topicActions}</div>
+        </div>
+      </div>
+      <div class="epic-card">
+        <h3>Ответы (${replies.length})</h3>
+        ${repliesHtml}
+        <div style="margin-top:20px">
+          <h3>Написать ответ</h3>
+          ${currentUser ? `<textarea class="epic-textarea" id="forumReplyText" maxlength="3000" placeholder="Ваш ответ..."></textarea><button class="epic-btn" onclick="submitForumReply(${Number(t.id)})">Отправить</button>` : '<p class="creator-note">Чтобы отвечать в теме, войди в аккаунт.</p>'}
+        </div>
+      </div>`;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(err){
+    view.innerHTML=`<div class="epic-card"><button class="epic-btn secondary" onclick="renderForum()">← Назад</button><h3>Ошибка</h3><p>${escapeHtml(err.message)}</p></div>`;
+  }
+}
+async function editForumTopic(topicId){
+  try{
+    const data=await forumRequest('get_topic',{topic_id:String(topicId)});
+    const title=prompt('Название темы:',data.topic.title);
+    if(title===null)return;
+    const body=prompt('Текст темы:',data.topic.body);
+    if(body===null)return;
+    if(!title.trim()||!body.trim()){alert('Название и текст не могут быть пустыми.');return;}
+    await forumRequest('update_topic',{topic_id:String(topicId),author:forumUserName(),title:title.trim(),body:body.trim()});
+    await openForumTopic(topicId);
+  }catch(err){alert(err.message);}
+}
+async function deleteForumTopic(topicId){
+  if(!confirm('Удалить тему вместе со всеми ответами?'))return;
+  try{
+    await forumRequest('delete_topic',{topic_id:String(topicId),author:forumUserName()});
+    forumCurrentTopicId=null;
+    await renderForum();
+  }catch(err){alert(err.message);}
+}
+async function editForumReply(replyId,topicId){try{const d=await forumRequest('get_topic',{topic_id:String(topicId)});const r=(d.replies||[]).find(x=>Number(x.id)===Number(replyId));if(!r)return alert('Ответ не найден.');const body=prompt('Текст ответа:',r.body);if(body===null)return;if(!body.trim())return alert('Текст ответа не может быть пустым.');await forumRequest('update_reply',{reply_id:String(replyId),author:forumUserName(),body:body.trim()});await openForumTopic(topicId);}catch(e){alert(e.message);}}
+async function deleteForumReply(replyId,topicId){if(!confirm('Удалить этот ответ?'))return;try{await forumRequest('delete_reply',{reply_id:String(replyId),author:forumUserName()});await openForumTopic(topicId);}catch(e){alert(e.message);}}
+async function moderateForumReply(replyId,topicId,status){try{await forumRequest('moderate_reply',{reply_id:String(replyId),author:forumUserName(),status});await openForumTopic(topicId);}catch(e){alert(e.message);}}
+async function submitForumReply(topicId){
+  if(!currentUser){alert('Войди в аккаунт.');return;}
+  const text=document.getElementById('forumReplyText')?.value.trim();
+  if(!text){alert('Напиши ответ.');return;}
+  try{
+    await forumRequest('reply',{topic_id:String(topicId),author:forumUserName(),body:text});
+    await openForumTopic(topicId);
+  }catch(err){alert(err.message);}
+}
+async function createForumTopic(){
+  if(!currentUser || getSiteRole(currentUser.username)!=='creator'){alert('Только создатели сайта могут создавать темы.');return;}
+  const title=document.getElementById('forumTopicTitle').value.trim();
+  const text=document.getElementById('forumTopicText').value.trim();
+  const category=document.getElementById('forumTopicCategory').value;
+  if(!title||!text){alert('Заполни название и текст темы.');return;}
+  try{
+    const data=await forumRequest('create_topic',{title,body:text,category,author:currentUser.username});
+    document.getElementById('forumTopicTitle').value='';
+    document.getElementById('forumTopicText').value='';
+    await openForumTopic(data.topic_id);
+  }catch(err){alert(err.message);}
+}
+function renderAdmins(){
+  const el=document.getElementById('adminsGrid'); if(!el)return;
+  el.innerHTML=SITE_CREATORS.map(name=>`<div class="epic-card admin-card"><div style="display:flex;align-items:center;gap:14px;"><div class="user-avatar-lg">${escapeHtml(name.charAt(0))}</div><div><h3>${escapeHtml(name)}</h3><div class="role-line">${roleBadge('creator')}</div></div></div></div>`).join('');
+}
+async function renderUsers(){
+  const el=document.getElementById('usersGrid'); if(!el)return;
+  const summary=document.getElementById('siteUsersSummary');
+  if(summary) summary.textContent='Загрузка...';
+  try {
+    const response=await fetch('users_api.php?action=list', {cache:'no-store'});
+    const data=await response.json().catch(()=>({ok:false}));
+    if(!response.ok || !data.ok) throw new Error(data.error || 'Ошибка загрузки пользователей.');
+    const all=Array.isArray(data.users) ? data.users : [];
+    if(summary) summary.textContent=`${all.length} аккаунт(ов)`;
+    if(!all.length){
+      el.innerHTML='<div class="epic-card"><h3>Пока нет пользователей</h3><p>Зарегистрируй первый аккаунт, чтобы он появился здесь.</p></div>';
+      return;
+    }
+    el.innerHTML=all.map(u=>{
+      const role=getSiteRole(u.username);
+      const localUser=(users||{})[u.username];
+      const avatar=u.avatar || (localUser && localUser.avatar);
+      const avatarHtml=avatar ? `<img src="${escapeHtml(avatar)}" alt="">` : escapeHtml(u.username.charAt(0).toUpperCase());
+      return `<div class="user-card"><div class="user-avatar-lg">${avatarHtml}</div><div class="user-meta"><strong>${escapeHtml(u.username)}</strong><small>${roleBadge(role)}</small></div></div>`;
+    }).join('');
+  } catch(error) {
+    const all=Object.values(users||{});
+    if(summary) summary.textContent=`${all.length} аккаунт(ов)`;
+    if(!all.length){
+      el.innerHTML='<div class="epic-card"><h3>Не удалось загрузить пользователей</h3><p>Проверь подключение к серверу.</p></div>';
+      return;
+    }
+    el.innerHTML=all.map(u=>{const role=getSiteRole(u.username);const avatar=u.avatar ? `<img src="${escapeHtml(u.avatar)}" alt="">` : escapeHtml(u.username.charAt(0).toUpperCase());return `<div class="user-card"><div class="user-avatar-lg">${avatar}</div><div class="user-meta"><strong>${escapeHtml(u.username)}</strong><small>${roleBadge(role)}</small></div></div>`;}).join('');
+  }
+}
+function openPurchase(){ alert('Для покупки напиши создателям: t.me/basebuilder_14'); }
+
+/* Patch navigation while keeping the existing authentication/profile code. */
+const originalShowPage = showPage;
+showPage = function(pageId){
+  if(['forum','users','admins','shop','epicHome'].includes(pageId)){
+    document.querySelectorAll('.page').forEach(page=>page.classList.remove('active'));
+    const target=document.getElementById(pageId==='epicHome'?'homeEpicPage':pageId+'Page');
+    if(target) target.classList.add('active');
+    document.getElementById('dropdownMenu')?.classList.remove('active');
+    if(pageId==='forum') renderForum();
+    if(pageId==='users') renderUsers();
+    if(pageId==='admins') renderAdmins();
+    return;
+  }
+  return originalShowPage(pageId);
+};
+
+(function enhanceNav(){
+  const links=document.querySelectorAll('.nav-links a');
+  if(links.length>=4){
+    links[1].setAttribute('onclick',"showPage('forum');return false;"); links[1].textContent='Форум';
+    links[2].setAttribute('onclick',"showPage('shop');return false;"); links[2].textContent='Магазин';
+    links[3].setAttribute('onclick',"showPage('users');return false;"); links[3].textContent='Пользователи';
+    const adminLink=document.createElement('li'); adminLink.innerHTML=`<a href="#" onclick="showPage('admins');return false;">Создатели</a>`;
+    links[3].parentElement.parentElement.appendChild(adminLink);
+  }
+})();
+
+const originalUpdateProfileInfo = updateProfileInfo;
+updateProfileInfo = function(){
+  originalUpdateProfileInfo();
+  if(!currentUser)return;
+  const info=document.getElementById('profileName')?.parentElement; if(!info)return;
+  const old=info.querySelector('.site-role-badge'); if(old)old.remove();
+  const badge=document.createElement('div'); badge.className='site-role-badge role-line'; badge.innerHTML=roleBadge(getSiteRole(currentUser.username)); info.appendChild(badge);
+  renderUsers();
+};
+
+const originalLoadSession = loadSession;
+loadSession = function(){
+  originalLoadSession();
+  renderAdmins(); renderUsers();
+};
+
+/* Render once after all functions above exist. */
+renderAdmins(); renderUsers();
+
+/* ===== BaseBuilder: global users + real balance + shop ===== */
+const BB_USERS_API='users_api.php';
+const BB_BALANCE_API='balance_api.php';
+const BB_CREATORS=['Puma123','МишкиГамми','Опасненько2','(Soski) Fn'];
+function bbCreator(){ return !!(currentUser && BB_CREATORS.includes(currentUser.username)); }
+async function bbApi(url, data={}){
+  const body=new URLSearchParams(data); const r=await fetch(url,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
+  const j=await r.json().catch(()=>({ok:false,error:'Сервер вернул некорректный ответ.'}));
+  if(!r.ok||!j.ok) throw new Error(j.error||'Ошибка сервера'); return j;
+}
+async function bbRefreshMe(){
+  if(!currentUser) return;
+  try{ const j=await bbApi(BB_BALANCE_API,{action:'me'}); if(j.user){ currentUser=Object.assign(currentUser,j.user); localStorage.setItem('baseBuilderSession',JSON.stringify({username:currentUser.username})); updateUserInterface(); updateProfileInfo(); } }catch(e){}
+}
+function bbMoney(v){ return Number(v||0).toLocaleString('ru-RU')+' ₽'; }
+async function bbLoadUsers(){
+  try{ const j=await bbApi(BB_USERS_API,{action:'list'}); window.bbUsers=j.users||[]; renderUsers(); }catch(e){ console.error(e); }
+}
+function renderUsers(){
+  const el=document.getElementById('usersGrid'); if(!el)return;
+  const all=window.bbUsers||[]; const summary=document.getElementById('siteUsersSummary'); if(summary) summary.textContent=`${all.length} аккаунт(ов)`;
+  if(!all.length){el.innerHTML='<div class="epic-card"><h3>Пока нет пользователей</h3></div>';return;}
+  el.innerHTML=all.map(u=>{const role=getSiteRole(u.username);const av=u.avatar?`<img src="${escapeHtml(u.avatar)}" alt="">`:escapeHtml((u.username||'?').charAt(0).toUpperCase());return `<div class="user-card"><div class="user-avatar-lg">${av}</div><div class="user-meta"><strong>${escapeHtml(u.username)}</strong><small>${roleBadge(role)}</small><div class="bb-user-balance">Зарегистрирован: ${escapeHtml(u.registrationDate||'-')}</div></div></div>`;}).join('');
+}
+function updateProfileInfo(){
+  if(!currentUser)return;
+  document.getElementById('profileName').textContent=currentUser.username;
+  document.getElementById('profileDate').textContent=currentUser.registrationDate||'-';
+  const emailElement=document.getElementById('profileEmail'); emailElement.textContent=currentUser.emailVisible?currentUser.email:'Email скрыт';
+  const profileAvatar=document.getElementById('profileAvatar'); profileAvatar.innerHTML=currentUser.avatar?'<img src="'+escapeHtml(currentUser.avatar)+'" alt="Avatar"><div class="profile-avatar-overlay">Изменить</div>':escapeHtml(currentUser.username.charAt(0).toUpperCase())+'<div class="profile-avatar-overlay">Изменить</div>';
+  document.getElementById('profileBalance').textContent=bbMoney(currentUser.balance||0);
+  document.getElementById('emailVisibility').checked=!!currentUser.emailVisible;
+  updateNameHistory();
+  const panel=document.getElementById('creatorBalancePanel'); if(panel) panel.style.display=bbCreator()?'block':'none';
+}
+let pendingPurchaseType = null;
+function openPrivilegePurchase(type){
+  if(!currentUser){
+    // Сначала пробуем восстановить настоящую PHP-сессию, а не доверяем только localStorage.
+    bbRestoreSession().then(()=>{
+      if(!currentUser){
+        alert('Сначала войди в аккаунт.');
+        showPage('auth');
+        return;
+      }
+      openPrivilegePurchase(type);
+    });
+    return;
+  }
+  pendingPurchaseType=type;
+  const price=type==='vip'?150:200;
+  const title=type==='vip'?'Покупка VIP':'Покупка ADMIN';
+  document.getElementById('purchaseModalTitle').textContent=title;
+  document.getElementById('purchaseSummary').textContent=`${title} — ${price} ₽ на 30 дней. ${type==='admin'?'ADMIN выдаёт s + t.':'VIP выдаёт t.'}`;
+  document.getElementById('purchaseServerNick').value='';
+  document.getElementById('purchaseGamePassword').value='';
+  const modal=document.getElementById('purchaseModal');
+  modal.style.display='flex';
+  modal.classList.add('active');
+  setTimeout(()=>document.getElementById('purchaseServerNick')?.focus(),0);
+}
+function closePurchaseModal(){
+  const modal=document.getElementById('purchaseModal');
+  modal.classList.remove('active');
+  modal.style.display='none';
+  pendingPurchaseType=null;
+}
+document.getElementById('purchaseForm')?.addEventListener('submit',async function(e){
+  e.preventDefault();
+  if(!currentUser){
+    await bbRestoreSession();
+    if(!currentUser){ alert('Сессия сайта потеряна. Войди в аккаунт заново.'); return; }
+  }
+  if(!pendingPurchaseType)return;
+
+  const serverNick=document.getElementById('purchaseServerNick').value.trim();
+  const gamePassword=document.getElementById('purchaseGamePassword').value;
+
+  if(serverNick.length<2){alert('Укажи игровой ник.');return;}
+  if(serverNick.length>32){alert('Ник не должен быть длиннее 32 символов.');return;}
+  if(/[|\r\n]/.test(serverNick)){alert('В нике нельзя использовать символ | или перенос строки.');return;}
+  if(gamePassword.length<4){alert('Пароль привилегии должен быть не короче 4 символов.');return;}
+
+  const type=pendingPurchaseType, price=type==='vip'?150:200;
+  if(!confirm(`Купить ${type==='vip'?'VIP':'ADMIN'} за ${price} ₽ на 30 дней для ${serverNick}?`))return;
+
+  try{
+    const j=await bbApi(BB_BALANCE_API,{
+      action:'buy',
+      type,
+      server_nick:serverNick,
+      game_password:gamePassword
+    });
+    if(j.user) currentUser=Object.assign(currentUser,j.user);
+    updateUserInterface();
+    updateProfileInfo();
+    closePurchaseModal();
+    alert(j.message||'Покупка оформлена.');
+  }catch(err){
+    alert(err.message);
+  }
+});
+async function grantBalanceFromSite(){
+  if(!bbCreator())return;
+  const username=document.getElementById('grantUser').value.trim(), amount=document.getElementById('grantAmount').value;
+  if(!username||!amount){alert('Укажи ник и сумму.');return;}
+  try{ await bbApi(BB_BALANCE_API,{action:'grant',target_username:username,amount}); alert('Баланс выдан.'); document.getElementById('grantAmount').value=''; await bbLoadUsers(); }catch(e){alert(e.message);}
+}
+/* replace legacy local-only auth handlers by cloning forms */
+(function installRealAuth(){
+ const lf=document.getElementById('loginForm'), rf=document.getElementById('registerForm');
+ if(!lf||!rf)return;
+ const l2=lf.cloneNode(true), r2=rf.cloneNode(true); lf.replaceWith(l2); rf.replaceWith(r2);
+ l2.addEventListener('submit',async e=>{e.preventDefault();try{const j=await bbApi(BB_USERS_API,{action:'login',username:document.getElementById('login-username').value.trim(),password:document.getElementById('login-password').value});currentUser=j.user;localStorage.setItem('baseBuilderSession',JSON.stringify({username:currentUser.username}));updateUserInterface();await bbRefreshMe();showPage('home');}catch(err){alert(err.message);}});
+ r2.addEventListener('submit',async e=>{e.preventDefault();const u=document.getElementById('reg-username').value.trim(),em=document.getElementById('reg-email').value.trim(),p=document.getElementById('reg-password').value,p2=document.getElementById('reg-password-confirm').value;if(p!==p2){alert('Пароли не совпадают!');return;}try{await bbApi(BB_USERS_API,{action:'register',username:u,email:em,password:p});r2.reset();document.getElementById('loginTab').click();document.getElementById('login-username').value=u;alert('Регистрация успешна! Теперь войдите в аккаунт.');}catch(err){alert(err.message);}});
+})();
+async function bbRestoreSession(){
+  try{const j=await bbApi(BB_USERS_API,{action:'session'});if(j.user){currentUser=j.user;updateUserInterface();updateProfileInfo();showPage('home');}else{currentUser=null;}}catch(e){}
+}
+/* Load shared users and balance on startup. */
+bbRestoreSession().then(()=>{bbLoadUsers();bbRefreshMe();});
+/* Real profile saving */
+(function installRealProfile(){
+ const f=document.getElementById('editForm'); if(!f)return; const f2=f.cloneNode(true); f.replaceWith(f2);
+ f2.addEventListener('submit',async e=>{e.preventDefault();if(!currentUser)return;const file=document.getElementById('avatarUpload').files[0];
+   const save=async avatar=>{try{const j=await bbApi(BB_USERS_API,{action:'update_profile',username:currentUser.username,new_username:document.getElementById('edit-name').value.trim(),email:document.getElementById('edit-email').value.trim(),avatar:avatar??currentUser.avatar??'',email_visible:document.getElementById('emailVisibility').checked?'1':'0'});currentUser=j.user;localStorage.setItem('baseBuilderSession',JSON.stringify({username:currentUser.username}));updateUserInterface();updateProfileInfo();closeEditModal();await bbLoadUsers();alert('Профиль обновлен!');}catch(err){alert(err.message);}};
+   if(file){const r=new FileReader();r.onload=()=>save(r.result);r.readAsDataURL(file);}else save(currentUser.avatar||'');
+ });
+})();
+setInterval(()=>{bbLoadUsers();bbRefreshMe();},30000);
+</script>
+
+<!-- BaseBuilder auth + Telegram shop patch -->
+<script>
+(function(){
+  const AUTH_API='users_api.php';
+  async function authApi(action,payload){
+    const body=new URLSearchParams({action,...payload});
+    const r=await fetch(AUTH_API,{method:'POST',credentials:'same-origin',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
+    const j=await r.json().catch(()=>({ok:false,error:'Сервер вернул некорректный ответ.'}));
+    if(!r.ok||!j.ok) throw new Error(j.error||'Ошибка сервера');
+    return j;
+  }
+  function applyUser(user){
+    currentUser=user;
+    try{ saveSession(currentUser); }catch(e){}
+    try{ updateUserInterface(); }catch(e){}
+  }
+  window.openPurchase=function(){
+    window.location.href='https://t.me/basebuilder_14';
+  };
+  const login=document.getElementById('loginForm');
+  const reg=document.getElementById('registerForm');
+  if(login){
+    login.addEventListener('submit',async function(e){
+      e.preventDefault(); e.stopImmediatePropagation();
+      const username=document.getElementById('login-username').value.trim();
+      const password=document.getElementById('login-password').value;
+      try{
+        const j=await authApi('login',{username,password});
+        applyUser(j.user||{username});
+        login.reset(); showPage('home');
+      }catch(err){alert(err.message);}
+    },true);
+  }
+  if(reg){
+    reg.addEventListener('submit',async function(e){
+      e.preventDefault(); e.stopImmediatePropagation();
+      const username=document.getElementById('reg-username').value.trim();
+      const email=document.getElementById('reg-email').value.trim();
+      const password=document.getElementById('reg-password').value;
+      const confirm=document.getElementById('reg-password-confirm').value;
+      if(password!==confirm){alert('Пароли не совпадают!');return;}
+      try{
+        await authApi('register',{username,email,password});
+        reg.reset();
+        document.getElementById('loginTab').click();
+        document.getElementById('login-username').value=username;
+        alert('Регистрация успешна! Теперь войдите в аккаунт.');
+      }catch(err){alert(err.message);}
+    },true);
+  }
+  // Extra products styled exactly like the main shop cards.
+  function addProducts(){
+    const shop=document.getElementById('shopPage');
+    if(!shop || shop.querySelector('[data-bb-extra-products]')) return;
+    const grid=document.createElement('div');
+    grid.setAttribute('data-bb-extra-products','1');
+    grid.className='bb-extra-shop-grid';
+    grid.innerHTML=`
+      <article class="shop-card">
+        <div class="shop-cover hook"><span class="shop-badge">HOOK</span></div>
+        <div class="shop-content">
+          <h3>🪝 Hook</h3>
+          <div class="shop-price">100 ₽ <small>/ 50 ₴</small></div>
+          <p>Доступ к Hook.</p>
+          <button class="epic-btn" onclick="openPurchase()">Купить</button>
+        </div>
+      </article>
+      <article class="shop-card">
+        <div class="shop-cover copy"><span class="shop-badge">COPY LIMIT</span></div>
+        <div class="shop-content">
+          <h3>📋 Лимит копирований 15</h3>
+          <div class="shop-price">50 ₽ <small>/ 25 ₴</small></div>
+          <p>Увеличенный лимит копирований до 15.</p>
+          <button class="epic-btn" onclick="openPurchase()">Купить</button>
+        </div>
+      </article>
+      <article class="shop-card">
+        <div class="shop-cover exp"><span class="shop-badge">EXP BOOST</span></div>
+        <div class="shop-content">
+          <h3>⭐ 50 EXP</h3>
+          <div class="shop-price">50 ₽ <small>/ 25 ₴</small></div>
+          <p>Получите 50 EXP.</p>
+          <button class="epic-btn" onclick="openPurchase()">Купить</button>
+        </div>
+      </article>`;
+    const note=shop.querySelector('.shop-note,.purchase-note,.shop-info');
+    if(note && note.parentNode) note.parentNode.insertBefore(grid,note.nextSibling);
+    else shop.appendChild(grid);
+  }
+  addProducts();
+})();
+</script>
+
+
+<script>
+/* Registration tab hard fix */
+(function(){
+  function showAuth(mode){
+    const lf=document.getElementById('loginForm');
+    const rf=document.getElementById('registerForm');
+    const lt=document.getElementById('loginTab');
+    const rt=document.getElementById('registerTab');
+    if(!lf||!rf)return;
+    const reg=mode==='register';
+    lf.style.display=reg?'none':'block';
+    rf.style.display=reg?'block':'none';
+    lt?.classList.toggle('active',!reg);
+    rt?.classList.toggle('active',reg);
+    const title=document.querySelector('#authPage .auth-title');
+    if(title) title.textContent=reg?'Регистрация':'Вход в аккаунт';
+  }
+  document.getElementById('loginTab')?.addEventListener('click',e=>{e.preventDefault();showAuth('login');},true);
+  document.getElementById('registerTab')?.addEventListener('click',e=>{e.preventDefault();showAuth('register');},true);
+
+  const oldLogin=document.getElementById('loginForm');
+  const oldReg=document.getElementById('registerForm');
+  if(oldLogin){
+    const login=oldLogin.cloneNode(true); oldLogin.replaceWith(login);
+    login.addEventListener('submit',async e=>{
+      e.preventDefault();
+      try{
+        const j=await bbApi(BB_USERS_API,{action:'login',
+          username:document.getElementById('login-username').value.trim(),
+          password:document.getElementById('login-password').value});
+        currentUser=j.user;
+        localStorage.setItem('baseBuilderSession',JSON.stringify({username:currentUser.username}));
+        updateUserInterface(); await bbRefreshMe(); showPage('home');
+      }catch(err){alert(err.message);}
+    });
+  }
+  if(oldReg){
+    const reg=oldReg.cloneNode(true); oldReg.replaceWith(reg);
+    reg.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const username=document.getElementById('reg-username').value.trim();
+      const email=document.getElementById('reg-email').value.trim();
+      const password=document.getElementById('reg-password').value;
+      const confirm=document.getElementById('reg-password-confirm').value;
+      if(password!==confirm){alert('Пароли не совпадают!');return;}
+      try{
+        await bbApi(BB_USERS_API,{action:'register',username,email,password});
+        reg.reset();
+        showAuth('login');
+        document.getElementById('login-username').value=username;
+        alert('Регистрация успешна! Теперь войдите в аккаунт.');
+      }catch(err){alert(err.message);}
+    });
+  }
+  showAuth('login');
+})();
+</script>
+</body>
+</html>

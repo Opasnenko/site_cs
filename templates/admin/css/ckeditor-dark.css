@@ -1,0 +1,29 @@
+body{
+    background:#0e1a15 !important;
+    color:#eaf6ef !important;
+}
+
+a{color:#5fe0a2}
+a:hover{color:#f2b54c}
+
+h1,h2,h3,h4,h5,h6,p,li,td,th,span,div,blockquote{color:#eaf6ef}
+
+hr{border-color:#1f3a2f}
+
+table,td,th{border-color:#1f3a2f !important}
+th{background:#122019}
+
+blockquote{
+    border-left:3px solid #2f9e6b;
+    background:#122019;
+    padding:8px 12px;
+}
+
+code,pre{
+    background:#0b1220;
+    color:#cbd5e1;
+    padding:2px 6px;
+    border-radius:6px;
+}
+
+::selection{background:rgba(242,181,76,.3)}

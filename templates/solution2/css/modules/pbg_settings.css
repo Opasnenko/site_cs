@@ -1,0 +1,447 @@
+/* ============================================================= */
+/*  Настройки — вкладки/переключатель (solution2)                */
+/*  Вкладки: Информация · Приватность · Уведомления · Контакты · Группа */
+/* ============================================================= */
+
+/* Меню-список в едином стиле с блоками правой части (тот же панельный фон,
+   что у .contacts_setting_block / .signature_block_setting) */
+.settings_tabs {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+  background: linear-gradient(1deg, rgb(37, 37, 46) 30%, rgb(41, 41, 50) 100%);
+  box-shadow: rgba(19, 21, 26, 0.31) 0px 5px 10px;
+}
+
+/* Плавающая подветка активного пункта меню */
+.settings_tab_glow {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  width: auto;
+  height: 0;
+  border-radius: 12px;
+  background: var(--GLOBAL, radial-gradient(100% 100% at 50% 0, #4fea9f 0, #38644f 100%));
+  box-shadow: 0 6px 16px rgba(79, 234, 159, .28);
+  transform: translateY(0);
+  transition: transform .3s cubic-bezier(.4, 0, .2, 1), height .3s cubic-bezier(.4, 0, .2, 1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.settings_tab {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 12px;
+  border: 0;
+  outline: 0;
+  cursor: pointer;
+  border-radius: 12px;
+  background: transparent;
+  color: #a6a9bd;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: left;
+  transition: color .22s ease, background .22s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings_tab:hover {
+  color: #e7e9f5;
+  background: rgba(255, 255, 255, .04);
+}
+
+.settings_tab .settings_tab_ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .05);
+  color: #9a9db2;
+  transition: background .22s ease, box-shadow .22s ease, color .22s ease;
+}
+
+.settings_tab .settings_tab_ic i {
+  font-size: 18px;
+  line-height: 0;
+}
+
+.settings_tab .settings_tab_label {
+  flex: 1 1 auto;
+}
+
+.settings_tab .settings_tab_arrow {
+  font-size: 20px;
+  line-height: 0;
+  color: #6a6d82;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity .22s ease, transform .22s ease, color .22s ease;
+}
+
+.settings_tab:hover .settings_tab_arrow {
+  opacity: .8;
+  transform: translateX(0);
+}
+
+.settings_tab.is-active {
+  color: #eafff5;
+}
+
+.settings_tab.is-active .settings_tab_ic {
+  background: rgba(0, 0, 0, .2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16);
+  color: #fff;
+}
+
+.settings_tab.is-active .settings_tab_arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: #eafff5;
+}
+
+/* —— Единые заголовки разделов настроек —— */
+.settings_heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 14px;
+}
+/* Заголовок ВНУТРИ блока меню разделов */
+.settings_heading--menu {
+  margin: 2px 2px 8px;
+  padding: 4px 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.settings_heading + .block_public_info,
+.settings_heading + .password_setting_block {
+  margin-top: 0;
+}
+.settings_heading_ic {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(79, 234, 159, .16), rgba(56, 100, 79, .1));
+  box-shadow: inset 0 0 0 1px rgba(79, 234, 159, .18);
+  color: #4fea9f;
+  font-size: 19px;
+  line-height: 0;
+}
+.settings_heading_ic i { line-height: 0; }
+.settings_heading_cap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.settings_heading_title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #f0f1f8;
+  line-height: 1.2;
+}
+.settings_heading_sub {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #7d7f92;
+  line-height: 1.3;
+}
+
+/* —— Кнопка сохранения — единое целое с полем ——
+   Каждое поле «Основной информации» и сохраняется отдельно,
+   т.к. часть значений (напр. логин) нельзя менять по нескольку раз.
+   Кнопка вписана прямо в правый край инпута, без зазора, как одна деталь. */
+.custom-input.field-save > input {
+  padding-right: 106px !important;
+}
+.custom-input.field-save > .fieldsave-btn {
+  position: absolute;
+  z-index: 3;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 36px;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--GLOBAL, radial-gradient(100% 100% at 50% 0, #4fea9f 0, #38644f 100%));
+  box-shadow: 0 2px 8px rgba(79, 234, 159, .22);
+  transition: filter .16s ease, box-shadow .16s ease;
+}
+.custom-input.field-save > .fieldsave-btn:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 3px 11px rgba(79, 234, 159, .3);
+}
+.custom-input.field-save > .fieldsave-btn:active {
+  filter: brightness(.97);
+}
+.custom-input.field-save > .fieldsave-btn i {
+  position: static;
+  color: inherit;
+  font-size: 15px;
+  line-height: 0;
+}
+
+/* Кнопка «Сохранить дату рождения» — на всю ширину блока даты,
+   с отступом снизу, чтобы «Персональная ссылка» не наезжала. */
+.block_date_edit {
+  padding-bottom: 16px !important;
+  margin-bottom: 20px !important;
+}
+.fieldsave-btn--block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  margin: 14px 0 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 11px;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--GLOBAL, radial-gradient(100% 100% at 50% 0, #4fea9f 0, #38644f 100%));
+  box-shadow: 0 4px 12px rgba(79, 234, 159, .22);
+  transition: filter .16s ease, box-shadow .16s ease;
+}
+.fieldsave-btn--block:hover { filter: brightness(1.07); box-shadow: 0 5px 15px rgba(79, 234, 159, .3); }
+.fieldsave-btn--block:active { filter: brightness(.96); }
+.fieldsave-btn--block i { font-size: 17px; line-height: 0; }
+
+/* Ответ сервера показываем всплывающим тостером (см. JS-обработчик в
+   settings.tpl), поэтому «сырые» контейнеры-результаты скрыты. */
+.fieldsave-result,
+.js-toast-result {
+  display: none !important;
+}
+
+/* Панели контента */
+.settings_pane {
+  display: none;
+  animation: pbSettingsFade .28s ease;
+}
+.settings_pane.is-active {
+  display: block;
+}
+
+@keyframes pbSettingsFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Когда открыта вкладка «Контакты», прячем правую колонку настроек */
+.col-lg-9.profile-settings.settings_hide_right {
+  display: none !important;
+}
+
+/* Режим «Контакты»: левая колонка растягивается на всю ширину строки и
+   переиспользуется в ту же двухколоночную раскладку «меню + контент», что и
+   на остальных вкладках — меню слева фиксированной ширины, блоки контактов
+   заполняют всё оставшееся место. Никакого центрирования и сужения —
+   структура совпадает с другими вкладками. */
+@media (min-width: 992px) {
+  .row.settings_contacts_mode > .col-lg-3 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    overflow: hidden; /* содержит плавающее меню по высоте */
+  }
+  /* Меню — фиксированная узкая колонка слева (плавает), подветка не
+     растягивается в гигантскую плашку */
+  .row.settings_contacts_mode > .col-lg-3 > .settings_tabs {
+    float: left;
+    width: 25%;
+    margin-bottom: 0;
+  }
+  /* Блоки контактов/подписи — справа от меню, во всю оставшуюся ширину.
+     Модальные окна и скрипты (display:none / без бокса) на раскладку не
+     влияют, поэтому structure не ломается. */
+  .row.settings_contacts_mode > .col-lg-3 > .settings_pane_side.is-active {
+    margin-left: calc(25% + 30px);
+    width: auto;
+    max-width: none;
+  }
+}
+
+/* —— Мобильная адаптация —— */
+/* На планшете/телефоне левая колонка встаёт над правой во всю ширину —
+   меню остаётся вертикальным списком, стрелка не нужна. */
+@media (max-width: 991.98px) {
+  .settings_tabs {
+    margin-bottom: 18px;
+  }
+  .settings_tab .settings_tab_arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .settings_tabs {
+    padding: 6px;
+    border-radius: 14px;
+  }
+  .settings_tab {
+    padding: 11px 10px;
+    font-size: 13px;
+    gap: 10px;
+  }
+  .settings_tab .settings_tab_ic {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .settings_tab .settings_tab_ic i {
+    font-size: 17px;
+  }
+}
+
+/* Сетка выбора позиции тостов: на узких экранах — 2 колонки вместо 3 */
+@media (max-width: 440px) {
+  .toast-pos-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ============================================================= */
+/*  Менеджер групп — вкладка «Группа»                             */
+/* ============================================================= */
+
+.pbg-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.pbg-group-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(1deg, rgb(37, 37, 46) 30%, rgb(41, 41, 50) 100%);
+  box-shadow: rgba(19, 21, 26, 0.31) 0px 5px 10px;
+  transition: box-shadow .22s ease, transform .22s ease;
+}
+
+.pbg-group-card--active {
+  box-shadow: inset 0 0 0 1px rgba(79, 234, 159, .45), 0 6px 16px rgba(79, 234, 159, .16);
+}
+
+.pbg-group-card_dot {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.pbg-group-card_text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.pbg-group-card_name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0f1f8;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pbg-group-card_status {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #7d7f92;
+  line-height: 1.3;
+}
+
+.pbg-group-card--active .pbg-group-card_status {
+  color: #4fea9f;
+}
+
+.pbg-group-card_badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--GLOBAL, radial-gradient(100% 100% at 50% 0, #4fea9f 0, #38644f 100%));
+  color: #fff;
+  font-size: 17px;
+  box-shadow: 0 2px 8px rgba(79, 234, 159, .28);
+}
+
+.pbg-group-card_btn {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e7e9f5;
+  background: rgba(255, 255, 255, .06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1);
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.pbg-group-card_btn:hover {
+  color: #eafff5;
+  background: rgba(79, 234, 159, .14);
+  box-shadow: inset 0 0 0 1px rgba(79, 234, 159, .4);
+}
+
+.pbg-group-empty {
+  padding: 18px 16px;
+  border-radius: 16px;
+  background: linear-gradient(1deg, rgb(37, 37, 46) 30%, rgb(41, 41, 50) 100%);
+  color: #9a9db2;
+  font-size: 13px;
+}
+
+@media (max-width: 575.98px) {
+  .pbg-group-grid {
+    grid-template-columns: 1fr;
+  }
+}
